@@ -125,3 +125,20 @@ func (p *Product) Update() gin.HandlerFunc {
 
 	}
 }
+
+func (p *Product) Delete() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+		if err != nil {
+			web.Error(c, 400, product.ErrInvalidId.Error())
+			return
+		}
+		err = p.productService.Delete(c, int(id))
+		if err != nil {
+			web.Error(c, 404, product.ErrNotFound.Error())
+			return
+		}
+		web.Success(c, 204, "")
+
+	}
+}

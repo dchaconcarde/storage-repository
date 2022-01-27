@@ -14,6 +14,7 @@ const (
 	getAllProducts   = "SELECT * FROM products"
 	updateProduct    = "UPDATE products SET name=?, type=?, count=?, price=?, id_warehouse=? WHERE id=?"
 	getProductById   = "SELECT * FROM products WHERE id=?;"
+	deleteById       = "DELETE FROM products WHERE id=?"
 )
 
 type Repository interface {
@@ -22,6 +23,7 @@ type Repository interface {
 	GetAll(ctx context.Context) ([]domain.Product, error)
 	UpdateWithContext(ctx context.Context, product domain.Product) (domain.Product, error)
 	GetById(ctx context.Context, id int) (domain.Product, error)
+	Delete(ctx context.Context, id int) error
 }
 type repository struct {
 	db *sql.DB
@@ -52,17 +54,17 @@ func (r *repository) GetByName(ctx context.Context, name string) (domain.Product
 
 func (r *repository) Store(ctx context.Context, product domain.Product) (domain.Product, error) {
 
-	stmt, err := r.db.Prepare(createNewProduct) // se prepara el SQL
+	stmt, err := r.db.Prepare(createNewProduct)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer stmt.Close() // se cierra la sentencia al terminar. Si quedan abiertas se genera consumos de memoria
+	defer stmt.Close()
 	var result sql.Result
-	result, err = stmt.Exec(product.Name, product.Type, product.Count, product.Price, product.IdWarehouse) // retorna un sql.Result y un error
+	result, err = stmt.Exec(product.Name, product.Type, product.Count, product.Price, product.IdWarehouse)
 	if err != nil {
 		return domain.Product{}, err
 	}
-	insertedId, _ := result.LastInsertId() // del sql.Resul devuelto en la ejecución obtenemos el Id insertado
+	insertedId, _ := result.LastInsertId()
 	product.ID = int(insertedId)
 	return product, nil
 }
@@ -74,15 +76,15 @@ func (r *repository) GetAll(ctx context.Context) ([]domain.Product, error) {
 		log.Println(err)
 		return nil, err
 	}
-	// se recorren todas las filas
+
 	for rows.Next() {
-		// por cada fila se obtiene un objeto del tipo Product
+
 		var product domain.Product
 		if err := rows.Scan(&product.ID, &product.Name, &product.Type, &product.Count, &product.Price, &product.IdWarehouse); err != nil {
 			log.Fatal(err)
 			return nil, err
 		}
-		//se añade el objeto obtenido al slice products
+
 		products = append(products, product)
 	}
 	return products, nil
@@ -119,4 +121,28 @@ func (r *repository) GetById(ctx context.Context, id int) (domain.Product, error
 	}
 
 	return product, nil
+}
+
+func (r *repository) Delete(ctx context.Context, id int) error {
+	query := deleteById
+	stmt, err := r.db.Prepare(query)
+	if err != nil {
+		return err
+	}
+
+	res, err := stmt.Exec(id)
+	if err != nil {
+		return err
+	}
+
+	affect, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if affect < 1 {
+		return ErrNotFound
+	}
+
+	return nil
 }

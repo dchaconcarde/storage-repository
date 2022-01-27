@@ -30,6 +30,7 @@ func main() {
 	productsGroup.POST("/", handler.Create())
 	productsGroup.GET("/", handler.GetAll())
 	productsGroup.PATCH("/:id", handler.Update())
+	productsGroup.DELETE("/:id", handler.Delete())
 
 	if err := r.Run(); err != nil {
 		panic(err)

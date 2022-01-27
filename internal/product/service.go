@@ -19,6 +19,7 @@ type Service interface {
 	GetAll(ctx context.Context) ([]domain.Product, error)
 	Update(ctx context.Context, product domain.Product) (domain.Product, error)
 	GetById(ctx context.Context, id int) (domain.Product, error)
+	Delete(ctx context.Context, id int) error
 }
 
 type service struct {
@@ -72,6 +73,10 @@ func (s *service) Update(ctx context.Context, p domain.Product) (domain.Product,
 
 	return s.repository.UpdateWithContext(ctx, updatedProduct)
 
+}
+
+func (s *service) Delete(ctx context.Context, id int) error {
+	return s.repository.Delete(ctx, id)
 }
 
 func fieldVerifier(product, updated domain.Product) domain.Product {
