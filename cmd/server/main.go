@@ -25,8 +25,11 @@ func main() {
 
 	productsGroup := r.Group("/products")
 
-	productsGroup.GET("/:name", handler.GetByName())
+	productsGroup.GET("/name/:name", handler.GetByName())
+	productsGroup.GET("/:id", handler.GetById())
 	productsGroup.POST("/", handler.Create())
+	productsGroup.GET("/", handler.GetAll())
+	productsGroup.PATCH("/:id", handler.Update())
 
 	if err := r.Run(); err != nil {
 		panic(err)
