@@ -73,3 +73,22 @@ func TestUpdateOK(t *testing.T) {
 	assert.Equal(t, newProduct.Count, res.Count)
 	assert.Equal(t, newProduct.Price, res.Price)
 }
+
+func TestGetByIdOK(t *testing.T) {
+	db, _ := sql.Open("mysql", "meli_sprint_user:Meli_Sprint#123@/storage")
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	newProduct := domain.Product{
+		ID:    10,
+		Name:  "Azucar",
+		Type:  "Morena",
+		Count: 1,
+		Price: 14.20,
+	}
+
+	repo := NewRepo(db)
+	res, _ := repo.GetById(ctx, newProduct.ID)
+
+	assert.Equal(t, newProduct.ID, res.ID)
+	assert.Equal(t, newProduct.Name, res.Name)
+	assert.IsType(t, domain.Product{}, res)
+}
